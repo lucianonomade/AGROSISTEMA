@@ -1,8 +1,14 @@
 import { useState, useCallback } from "react";
 import { Product } from "./useProducts";
 
+// Extended product type to support miscellaneous items
+export interface CartProduct extends Omit<Product, 'id'> {
+  id: string;
+  isMiscellaneous?: boolean;
+}
+
 export interface CartItem {
-  product: Product;
+  product: CartProduct;
   quantity: number;
   subtotal: number;
 }
@@ -18,18 +24,19 @@ export const useCart = () => {
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
   const [discountValue, setDiscountValue] = useState<number>(0);
 
-  const addItem = useCallback((product: Product, quantity: number) => {
+  const addItem = useCallback((product: Product | CartProduct, quantity: number) => {
     setItems((prev) => {
       const existingItem = prev.find((item) => item.product.id === product.id);
-      
-      if (existingItem) {
+
+      // Don't merge miscellaneous items, always add as new
+      if (existingItem && !(product as CartProduct).isMiscellaneous) {
         return prev.map((item) =>
           item.product.id === product.id
             ? {
-                ...item,
-                quantity: item.quantity + quantity,
-                subtotal: (item.quantity + quantity) * product.sale_price,
-              }
+              ...item,
+              quantity: item.quantity + quantity,
+              subtotal: (item.quantity + quantity) * product.sale_price,
+            }
             : item
         );
       }
@@ -37,7 +44,7 @@ export const useCart = () => {
       return [
         ...prev,
         {
-          product,
+          product: product as CartProduct,
           quantity,
           subtotal: quantity * product.sale_price,
         },
@@ -59,10 +66,10 @@ export const useCart = () => {
       prev.map((item) =>
         item.product.id === productId
           ? {
-              ...item,
-              quantity,
-              subtotal: quantity * item.product.sale_price,
-            }
+            ...item,
+            quantity,
+            subtotal: quantity * item.product.sale_price,
+          }
           : item
       )
     );
@@ -80,7 +87,7 @@ export const useCart = () => {
 
   const calculateTotals = useCallback((): CartTotals => {
     const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
-    
+
     let discountAmount = 0;
     if (discountType === "percentage") {
       discountAmount = (subtotal * discountValue) / 100;
@@ -104,6 +111,11 @@ export const useCart = () => {
     const errors: string[] = [];
 
     for (const item of items) {
+      // Skip stock validation for miscellaneous items
+      if (item.product.isMiscellaneous) {
+        continue;
+      }
+
       if (item.quantity > item.product.stock) {
         errors.push(
           `${item.product.name}: estoque insuficiente (disponível: ${item.product.stock})`

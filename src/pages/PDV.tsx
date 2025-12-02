@@ -27,6 +27,14 @@ const PDV = () => {
     "dinheiro" | "debito" | "credito" | "pix" | null
   >(null);
 
+  const [priceInput, setPriceInput] = useState("");
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<any>(null);
+
+  // Miscellaneous item modal state
+  const [showMiscModal, setShowMiscModal] = useState(false);
+  const [miscValue, setMiscValue] = useState("");
+
   const { products, isLoading } = useProducts();
   const { createSaleAsync, isCreating } = useSales();
   const {
@@ -61,11 +69,90 @@ const PDV = () => {
       return;
     }
 
+    if (product.is_variable_price) {
+      setPendingProduct(product);
+      setPriceInput("");
+      setShowPriceModal(true);
+      return;
+    }
+
     addItem(product, product.unit_type === "bulk" ? 0.1 : 1);
     toast({
       title: "Produto adicionado",
       description: `${product.name} foi adicionado ao carrinho.`,
     });
+  };
+
+  const confirmVariablePriceProduct = () => {
+    if (!pendingProduct) return;
+
+    const price = parseFloat(priceInput);
+    if (isNaN(price) || price <= 0) {
+      toast({
+        title: "Preço inválido",
+        description: "Informe um preço válido maior que zero.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const productWithPrice = {
+      ...pendingProduct,
+      sale_price: price,
+    };
+
+    addItem(productWithPrice, pendingProduct.unit_type === "bulk" ? 0.1 : 1);
+    toast({
+      title: "Produto adicionado",
+      description: `${pendingProduct.name} foi adicionado ao carrinho com preço R$ ${price.toFixed(2)}.`,
+    });
+
+    setShowPriceModal(false);
+    setPendingProduct(null);
+    setPriceInput("");
+  };
+
+  const handleAddMiscellaneous = () => {
+    setMiscValue("");
+    setShowMiscModal(true);
+  };
+
+  const confirmMiscellaneousItem = () => {
+    const value = parseFloat(miscValue);
+    if (isNaN(value) || value <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "Informe um valor válido maior que zero.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a miscellaneous product item
+    const miscProduct = {
+      id: `misc-${Date.now()}`,
+      name: "DIVERSOS",
+      category: "Diversos",
+      cost_price: 0,
+      sale_price: value,
+      stock: 1,
+      unit_type: "unit" as const,
+      unit_measure: "un",
+      min_stock: 0,
+      barcode: null,
+      is_variable_price: false,
+      isMiscellaneous: true,
+      created_at: new Date().toISOString(),
+    };
+
+    addItem(miscProduct, 1);
+    toast({
+      title: "Item DIVERSOS adicionado",
+      description: `Item adicionado ao carrinho com valor R$ ${value.toFixed(2)}.`,
+    });
+
+    setShowMiscModal(false);
+    setMiscValue("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -139,7 +226,7 @@ const PDV = () => {
         final_amount: totals.total,
         payment_method: selectedPaymentMethod,
         items: items.map((item) => ({
-          product_id: item.product.id,
+          product_id: item.product.isMiscellaneous ? null : item.product.id,
           product_name: item.product.name,
           quantity: item.quantity,
           unit_price: item.product.sale_price,
@@ -209,6 +296,14 @@ const PDV = () => {
                 className="pl-10"
               />
             </div>
+
+            <Button
+              onClick={handleAddMiscellaneous}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+              size="lg"
+            >
+              + DIVERSOS
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto">
@@ -326,6 +421,86 @@ const PDV = () => {
             </Button>
             <Button onClick={handleConfirmSale} disabled={isCreating}>
               {isCreating ? "Processando..." : "Confirmar Venda"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Variable Price Modal */}
+      <Dialog open={showPriceModal} onOpenChange={setShowPriceModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Informe o Valor do Produto</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-3 block">
+                Valor do Produto (R$)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={priceInput}
+                onChange={(e) => setPriceInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    confirmVariablePriceProduct();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPriceModal(false)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={confirmVariablePriceProduct}>
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Miscellaneous Item Modal */}
+      <Dialog open={showMiscModal} onOpenChange={setShowMiscModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Item DIVERSOS</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-3 block">
+                Valor do Item (R$)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={miscValue}
+                onChange={(e) => setMiscValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    confirmMiscellaneousItem();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMiscModal(false)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={confirmMiscellaneousItem} className="bg-amber-600 hover:bg-amber-700">
+              Confirmar
             </Button>
           </DialogFooter>
         </DialogContent>

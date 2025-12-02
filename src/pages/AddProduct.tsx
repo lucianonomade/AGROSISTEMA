@@ -35,6 +35,7 @@ const formSchema = z.object({
   unit_measure: z.string().min(1, "Unidade de medida é obrigatória"),
   min_stock: z.number().min(0, "Estoque mínimo deve ser positivo"),
   barcode: z.string().optional().nullable(),
+  is_variable_price: z.boolean().default(false),
 });
 
 const AddProduct = () => {
@@ -56,6 +57,7 @@ const AddProduct = () => {
       unit_measure: "un",
       min_stock: 5,
       barcode: "",
+      is_variable_price: false,
     },
   });
 
@@ -71,6 +73,7 @@ const AddProduct = () => {
         unit_measure: productToEdit.unit_measure,
         min_stock: Number(productToEdit.min_stock),
         barcode: productToEdit.barcode || "",
+        is_variable_price: productToEdit.is_variable_price || false,
       });
     }
   }, [productToEdit, form]);
@@ -78,6 +81,7 @@ const AddProduct = () => {
   const unitType = form.watch("unit_type");
   const costPrice = form.watch("cost_price");
   const salePrice = form.watch("sale_price");
+  const isVariablePrice = form.watch("is_variable_price");
 
   const profitMargin = costPrice > 0 ? ((salePrice - costPrice) / costPrice) * 100 : 0;
 
@@ -257,25 +261,27 @@ const AddProduct = () => {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="sale_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço de Venda (R$)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isVariablePrice && (
+                  <FormField
+                    control={form.control}
+                    name="sale_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preço de Venda (R$)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
@@ -318,7 +324,7 @@ const AddProduct = () => {
                 />
               </div>
 
-              {costPrice > 0 && salePrice > 0 && (
+              {costPrice > 0 && salePrice > 0 && !isVariablePrice && (
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">

@@ -33,7 +33,7 @@ export interface CreateSaleData {
   payment_method: "dinheiro" | "debito" | "credito" | "pix";
   notes?: string;
   items: {
-    product_id: string;
+    product_id: string | null;  // Allow null for miscellaneous items
     product_name: string;
     quantity: number;
     unit_price: number;
@@ -95,13 +95,18 @@ export const useSales = () => {
       }));
 
       const { error: itemsError } = await supabase
-        .from("sale_items")
-        .insert(saleItems);
+        .from("sale_items" as any)
+        .insert(saleItems as any);
 
       if (itemsError) throw itemsError;
 
-      // Update stock for each product
+      // Update stock for each product (skip miscellaneous items)
       for (const item of saleData.items) {
+        // Skip stock update for miscellaneous items
+        if (!item.product_id) {
+          continue;
+        }
+
         const { data: product, error: productError } = await supabase
           .from("products")
           .select("stock")

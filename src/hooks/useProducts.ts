@@ -15,6 +15,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   barcode?: string | null;
+  is_variable_price?: boolean;
 }
 
 export interface ProductInsert {
@@ -27,6 +28,7 @@ export interface ProductInsert {
   unit_measure: string;
   min_stock: number;
   barcode?: string | null;
+  is_variable_price?: boolean;
 }
 
 export const useProducts = () => {
