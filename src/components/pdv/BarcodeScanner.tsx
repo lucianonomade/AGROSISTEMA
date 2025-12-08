@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { BarcodeScannerComponent } from "react-qr-barcode-scanner";
+import { useEffect, useRef, useState } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import { X, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,21 +17,64 @@ interface BarcodeScannerProps {
 
 export const BarcodeScanner = ({ open, onClose, onScan }: BarcodeScannerProps) => {
     const [error, setError] = useState<string | null>(null);
+    const scannerRef = useRef<Html5Qrcode | null>(null);
+    const [isScanning, setIsScanning] = useState(false);
 
-    const handleScan = (err: any, result: any) => {
-        if (result) {
-            onScan(result.text);
-            onClose();
+    useEffect(() => {
+        if (open && !isScanning) {
+            startScanner();
         }
-        if (err) {
-            // Only set error if it's a real error, not just "no barcode found"
-            if (err.name !== "NotFoundException") {
-                setError("Erro ao acessar a câmera. Verifique as permissões.");
+
+        return () => {
+            stopScanner();
+        };
+    }, [open]);
+
+    const startScanner = async () => {
+        try {
+            setError(null);
+            const scanner = new Html5Qrcode("barcode-reader");
+            scannerRef.current = scanner;
+
+            await scanner.start(
+                { facingMode: "environment" }, // Use back camera on mobile
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                },
+                (decodedText) => {
+                    onScan(decodedText);
+                    stopScanner();
+                    onClose();
+                },
+                (errorMessage) => {
+                    // Ignore "No MultiFormat Readers were able to detect the code" errors
+                    // These are normal when no barcode is in view
+                }
+            );
+            setIsScanning(true);
+        } catch (err: any) {
+            console.error("Error starting scanner:", err);
+            setError("Erro ao acessar a câmera. Verifique as permissões.");
+            setIsScanning(false);
+        }
+    };
+
+    const stopScanner = async () => {
+        if (scannerRef.current && isScanning) {
+            try {
+                await scannerRef.current.stop();
+                scannerRef.current.clear();
+                scannerRef.current = null;
+                setIsScanning(false);
+            } catch (err) {
+                console.error("Error stopping scanner:", err);
             }
         }
     };
 
     const handleClose = () => {
+        stopScanner();
         setError(null);
         onClose();
     };
@@ -55,21 +98,8 @@ export const BarcodeScanner = ({ open, onClose, onScan }: BarcodeScannerProps) =
                             </p>
                         </div>
                     ) : (
-                        <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-black">
-                            <BarcodeScannerComponent
-                                width="100%"
-                                height="100%"
-                                onUpdate={handleScan}
-                            />
-                            <div className="absolute inset-0 pointer-events-none">
-                                {/* Scanning overlay */}
-                                <div className="absolute inset-0 border-2 border-primary/50 rounded-lg">
-                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
-                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
-                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
-                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg"></div>
-                                </div>
-                            </div>
+                        <div className="relative w-full overflow-hidden rounded-lg bg-black">
+                            <div id="barcode-reader" className="w-full"></div>
                         </div>
                     )}
 
