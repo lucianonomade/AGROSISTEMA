@@ -7,12 +7,28 @@ export function spaFallbackPlugin(): Plugin {
         name: 'spa-fallback',
         configurePreviewServer(server) {
             server.middlewares.use((req, res, next) => {
-                // Skip if it's an API call or file with extension
-                if (req.url?.startsWith('/api') || path.extname(req.url || '') !== '') {
+                const url = req.url || '';
+
+                // Skip if it's an API call
+                if (url.startsWith('/api')) {
                     return next();
                 }
 
-                // For all other routes, serve index.html
+                // Skip if it has a file extension (static assets)
+                const ext = path.extname(url.split('?')[0]);
+                if (ext && ext !== '.html') {
+                    return next();
+                }
+
+                // Skip common asset paths
+                if (url.startsWith('/assets/') ||
+                    url.startsWith('/public/') ||
+                    url.startsWith('/@') ||
+                    url.includes('.')) {
+                    return next();
+                }
+
+                // For HTML routes without extension, serve index.html
                 const indexPath = path.resolve(server.config.root, 'dist', 'index.html');
                 if (fs.existsSync(indexPath)) {
                     res.setHeader('Content-Type', 'text/html');

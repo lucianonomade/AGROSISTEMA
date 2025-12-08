@@ -8,4 +8,4 @@ cmds = ['npm ci --legacy-peer-deps']
 cmds = ['NODE_OPTIONS="--max-old-space-size=8192" npm run build']
 
 [start]
-cmd = 'PORT=${PORT:-8080} npm run preview -- --host 0.0.0.0 --port ${PORT:-8080}'
+cmd = 'npm start'

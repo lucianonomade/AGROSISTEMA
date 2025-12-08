@@ -4,7 +4,6 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
 import basicSsl from '@vitejs/plugin-basic-ssl';
-import { spaFallbackPlugin } from './vite-spa-fallback';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,15 +11,12 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  // --- ADICIONADO ---
   preview: {
     host: "0.0.0.0",
     port: 8080,
     strictPort: true,
   },
-  // ------------------
   plugins: [
-    spaFallbackPlugin(),
     mode === "development" && basicSsl(),
     react(),
     mode === "development" && componentTagger(),
