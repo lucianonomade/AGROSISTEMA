@@ -17,7 +17,8 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     allowedHosts: [
       'labz-sistemagro.bnif1n.easypanel.host',
-      '.easypanel.host'
+      '.easypanel.host',
+      'agro.hub-ly.top'
     ],
   },
   plugins: [
