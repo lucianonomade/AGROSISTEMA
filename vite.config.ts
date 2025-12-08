@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => ({
     host: "0.0.0.0",
     port: 8080,
     strictPort: true,
+    allowedHosts: [
+      'labz-sistemagro.bnif1n.easypanel.host',
+      '.easypanel.host'
+    ],
   },
   plugins: [
     mode === "development" && basicSsl(),
