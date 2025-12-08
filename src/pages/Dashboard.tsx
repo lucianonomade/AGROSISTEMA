@@ -63,8 +63,8 @@ const Dashboard = () => {
   }));
 
   const topProductsChart = topProducts.map((product) => ({
-    name: product.product_name.length > 20 
-      ? product.product_name.substring(0, 20) + "..." 
+    name: product.product_name.length > 20
+      ? product.product_name.substring(0, 20) + "..."
       : product.product_name,
     vendas: Number(product.total_revenue.toFixed(2)),
     quantidade: Number(product.total_quantity.toFixed(2)),

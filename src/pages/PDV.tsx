@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ShoppingCart, Trash2, X } from "lucide-react";
+import { Search, ShoppingCart, Trash2, X, Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
@@ -10,6 +10,7 @@ import { CartItem } from "@/components/pdv/CartItem";
 import { CartSummary } from "@/components/pdv/CartSummary";
 import { DiscountInput } from "@/components/pdv/DiscountInput";
 import { PaymentMethodSelector } from "@/components/pdv/PaymentMethodSelector";
+import { BarcodeScanner } from "@/components/pdv/BarcodeScanner";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,9 @@ const PDV = () => {
   // Miscellaneous item modal state
   const [showMiscModal, setShowMiscModal] = useState(false);
   const [miscValue, setMiscValue] = useState("");
+
+  // Barcode scanner modal state
+  const [showScanner, setShowScanner] = useState(false);
 
   const { products, isLoading } = useProducts();
   const { createSaleAsync, isCreating } = useSales();
@@ -185,6 +189,23 @@ const PDV = () => {
     }
   };
 
+  const handleCameraScan = (barcode: string) => {
+    const product = products.find((p) => p.barcode === barcode);
+    if (product) {
+      handleAddToCart(product);
+      toast({
+        title: "Produto escaneado",
+        description: `${product.name} foi adicionado ao carrinho.`,
+      });
+    } else {
+      toast({
+        title: "Produto não encontrado",
+        description: "Nenhum produto encontrado com este código de barras.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFinalizeSale = () => {
     if (items.length === 0) {
       toast({
@@ -257,34 +278,44 @@ const PDV = () => {
         {/* Left Column - Products */}
         <div className="lg:col-span-2 space-y-4">
           <div className="space-y-4">
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 5v14" />
-                  <path d="M8 5v14" />
-                  <path d="M12 5v14" />
-                  <path d="M17 5v14" />
-                  <path d="M21 5v14" />
-                </svg>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 5v14" />
+                    <path d="M8 5v14" />
+                    <path d="M12 5v14" />
+                    <path d="M17 5v14" />
+                    <path d="M21 5v14" />
+                  </svg>
+                </div>
+                <Input
+                  placeholder="Escanear código de barras..."
+                  value={barcodeInput}
+                  onChange={(e) => setBarcodeInput(e.target.value)}
+                  onKeyDown={handleBarcodeScan}
+                  className="pl-10 bg-background border-primary/20 focus-visible:ring-primary"
+                  autoFocus
+                />
               </div>
-              <Input
-                placeholder="Escanear código de barras..."
-                value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
-                onKeyDown={handleBarcodeScan}
-                className="pl-10 bg-background border-primary/20 focus-visible:ring-primary"
-                autoFocus
-              />
+              <Button
+                onClick={() => setShowScanner(true)}
+                size="icon"
+                className="bg-primary hover:bg-primary/90"
+                title="Escanear com câmera"
+              >
+                <Camera className="h-5 w-5" />
+              </Button>
             </div>
 
             <div className="relative">
@@ -505,6 +536,13 @@ const PDV = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScanner
+        open={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleCameraScan}
+      />
     </div>
   );
 };
