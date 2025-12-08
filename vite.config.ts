@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
   // ------------------
   plugins: [
     spaFallbackPlugin(),
-    basicSsl(),
+    mode === "development" && basicSsl(),
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
