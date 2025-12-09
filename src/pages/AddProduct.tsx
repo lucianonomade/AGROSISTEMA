@@ -20,10 +20,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Camera } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProducts, ProductInsert } from "@/hooks/useProducts";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { BarcodeScanner } from "@/components/pdv/BarcodeScanner";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -42,6 +43,7 @@ const AddProduct = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { createProduct, updateProduct, products } = useProducts();
+  const [showScanner, setShowScanner] = useState(false);
 
   const productToEdit = id ? products.find((p) => p.id === id) : null;
 
@@ -147,9 +149,21 @@ const AddProduct = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Código de Barras</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Escaneie ou digite o código" {...field} />
-                      </FormControl>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="Escaneie ou digite o código" {...field} />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          onClick={() => setShowScanner(true)}
+                          size="icon"
+                          variant="outline"
+                          className="shrink-0"
+                          title="Escanear com câmera"
+                        >
+                          <Camera className="h-5 w-5" />
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -357,6 +371,16 @@ const AddProduct = () => {
           </Form>
         </CardContent>
       </Card>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScanner
+        open={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={(barcode) => {
+          form.setValue("barcode", barcode);
+          setShowScanner(false);
+        }}
+      />
     </div>
   );
 };
