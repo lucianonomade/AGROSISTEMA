@@ -337,7 +337,7 @@ const PDV = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-h-[400px] md:max-h-[600px] overflow-y-auto">
             {isLoading ? (
               <p className="text-muted-foreground col-span-full text-center py-8">
                 Carregando produtos...
@@ -368,7 +368,7 @@ const PDV = () => {
             </span>
           </div>
 
-          <div className="space-y-3 max-h-[300px] overflow-y-auto">
+          <div className="space-y-3 max-h-[200px] md:max-h-[300px] overflow-y-auto">
             {items.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 Carrinho vazio
