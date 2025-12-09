@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,6 +44,17 @@ const Auth = () => {
             password: "",
         },
     });
+
+    // Check if user is already authenticated
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                navigate("/", { replace: true });
+            }
+        };
+        checkAuth();
+    }, [navigate]);
 
     const onLogin = async (values: AuthFormValues) => {
         try {

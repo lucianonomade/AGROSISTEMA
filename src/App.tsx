@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import BarcodeTest from "./pages/BarcodeTest";
 import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,15 +24,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/profile" element={<Layout><Profile /></Layout>} />
-          <Route path="/products" element={<Layout><Products /></Layout>} />
-          <Route path="/add-product" element={<Layout><AddProduct /></Layout>} />
-          <Route path="/edit-product/:id" element={<Layout><AddProduct /></Layout>} />
-          <Route path="/pdv" element={<Layout><PDV /></Layout>} />
-          <Route path="/reports" element={<Layout><Reports /></Layout>} />
-          <Route path="/barcode-test" element={<Layout><BarcodeTest /></Layout>} />
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><Layout><Products /></Layout></ProtectedRoute>} />
+          <Route path="/add-product" element={<ProtectedRoute><Layout><AddProduct /></Layout></ProtectedRoute>} />
+          <Route path="/edit-product/:id" element={<ProtectedRoute><Layout><AddProduct /></Layout></ProtectedRoute>} />
+          <Route path="/pdv" element={<ProtectedRoute><Layout><PDV /></Layout></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
+          <Route path="/barcode-test" element={<ProtectedRoute><Layout><BarcodeTest /></Layout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
