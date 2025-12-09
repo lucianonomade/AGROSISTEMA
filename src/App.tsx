@@ -11,6 +11,7 @@ import PDV from "./pages/PDV";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import BarcodeTest from "./pages/BarcodeTest";
 import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/edit-product/:id" element={<Layout><AddProduct /></Layout>} />
           <Route path="/pdv" element={<Layout><PDV /></Layout>} />
           <Route path="/reports" element={<Layout><Reports /></Layout>} />
+          <Route path="/barcode-test" element={<Layout><BarcodeTest /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

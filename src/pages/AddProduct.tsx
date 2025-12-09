@@ -25,6 +25,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useProducts, ProductInsert } from "@/hooks/useProducts";
 import { useEffect, useState } from "react";
 import { BarcodeScanner } from "@/components/pdv/BarcodeScanner";
+import { useBarcodeLookup } from "@/hooks/useBarcodeLookup";
+import { toast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -43,6 +46,7 @@ const AddProduct = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { createProduct, updateProduct, products } = useProducts();
+  const { lookupBarcode, isLoading: isLookingUp } = useBarcodeLookup();
   const [showScanner, setShowScanner] = useState(false);
 
   const productToEdit = id ? products.find((p) => p.id === id) : null;
@@ -376,9 +380,38 @@ const AddProduct = () => {
       <BarcodeScanner
         open={showScanner}
         onClose={() => setShowScanner(false)}
-        onScan={(barcode) => {
+        onScan={async (barcode) => {
           form.setValue("barcode", barcode);
           setShowScanner(false);
+
+          // Buscar informações do produto automaticamente
+          toast({
+            title: "Buscando produto...",
+            description: "Consultando base de dados",
+          });
+
+          const productInfo = await lookupBarcode(barcode);
+
+          if (productInfo && productInfo.found) {
+            // Preencher campos automaticamente
+            if (productInfo.name) {
+              form.setValue("name", productInfo.name);
+            }
+            if (productInfo.category) {
+              form.setValue("category", productInfo.category);
+            }
+
+            toast({
+              title: "Produto encontrado!",
+              description: `${productInfo.name} - ${productInfo.source}`,
+            });
+          } else {
+            toast({
+              title: "Produto não encontrado",
+              description: "Preencha as informações manualmente",
+              variant: "destructive",
+            });
+          }
         }}
       />
     </div>
